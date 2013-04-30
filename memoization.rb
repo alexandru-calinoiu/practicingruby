@@ -1,11 +1,10 @@
 module Memo
-	@@memo = {0 => 1, 1 => 1}
-
 	def memoize(method)
-		alias_method "old_#{method}".to_sym, method
+		old_method = instance_method(method)
+		memo = {}
 
 		define_method(method) do |*args|
-			@@memo[args] ||= self.send("old_#{method}".to_sym, *args)
+			memo[args] ||= old_method.bind(self).call(*args)
 		end
 	end
 end
@@ -21,4 +20,11 @@ class Fib
 	memoize :calculate
 end
 
-p Fib.new.calculate(7)
+
+require "benchmark"
+
+result = Benchmark.measure do
+	puts Fib.new.calculate(4056)
+end
+
+puts result
